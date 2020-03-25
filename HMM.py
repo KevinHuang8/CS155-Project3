@@ -45,7 +45,7 @@ class HiddenMarkovModel:
     def __init__(self, A, O):
         '''
         Initializes an HMM. Assumes the following:
-            - States and observations are integers starting from 0. 
+            - States and observations are integers starting from 0.
             - There is a start state (see notes on A_start below). There
               is no integer associated with the start state, only
               probabilities in the vector A_start.
@@ -63,13 +63,13 @@ class HiddenMarkovModel:
 
         Parameters:
             L:          Number of states.
-            
+
             D:          Number of observations.
-            
+
             A:          The transition matrix.
-            
+
             O:          The observation matrix.
-            
+
             A_start:    Starting transition probabilities. The i^th element
                         is the probability of transitioning from the start
                         state to state i. For simplicity, we assume that
@@ -84,10 +84,10 @@ class HiddenMarkovModel:
 
     def save(self, filename):
         np.savez(filename, A=self.A, O=self.O)
-        
+
     def viterbi(self, x):
         '''
-        Uses the Viterbi algorithm to find the max probability state 
+        Uses the Viterbi algorithm to find the max probability state
         sequence corresponding to a given input sequence.
 
         Arguments:
@@ -130,9 +130,9 @@ class HiddenMarkovModel:
                 seqs[prefix_length][state] = seqs[prefix_length - 1][best_prev_state] + str(state)
 
         max_seq = ''
-        highest_prob = -1e10 
+        highest_prob = -1e10
         for state in range(self.L):
-            p = probs[M][state] 
+            p = probs[M][state]
             if p > highest_prob:
                 highest_prob = p
                 max_seq = seqs[M][state]
@@ -167,12 +167,13 @@ class HiddenMarkovModel:
 
         M = len(x)      # Length of sequence.
         alphas = np.zeros((M, self.L))
- 
+
         # Base case
         alphas[0] = self.A_start * self.O[:, x[0]]
 
         for k in range(1, M):
             for state in range(self.L):
+                #print(x[k])
                 alphas[k][state] = self.O[state, x[k]] * np.dot(self.A[:, state], alphas[k - 1])
 
             if normalize:
@@ -231,12 +232,12 @@ class HiddenMarkovModel:
 
         Arguments:
             X:          A dataset consisting of input sequences in the form
-                        of lists of variable length, consisting of integers 
+                        of lists of variable length, consisting of integers
                         ranging from 0 to D - 1. In other words, a list of
                         lists.
 
             Y:          A dataset consisting of state sequences in the form
-                        of lists of variable length, consisting of integers 
+                        of lists of variable length, consisting of integers
                         ranging from 0 to L - 1. In other words, a list of
                         lists.
 
@@ -325,7 +326,7 @@ class HiddenMarkovModel:
     def generate_emission(self, M):
         '''
         Generates an emission of length M, assuming that the starting state
-        is chosen uniformly at random. 
+        is chosen uniformly at random.
 
         Arguments:
             M:          Length of the emission to generate.
@@ -344,6 +345,40 @@ class HiddenMarkovModel:
 
         init_state = np.random.choice(possible_states, p=self.A_start)
         init_x = np.random.choice(possible_emissions, p=self.O[init_state])
+
+        emission.append(init_x)
+        states.append(init_state)
+
+        for k in range(1, M):
+            state = np.random.choice(possible_states, p=self.A[states[-1]])
+            x = np.random.choice(possible_emissions, p=self.O[state])
+            emission.append(x)
+            states.append(state)
+
+        return emission, states
+
+    def generate_emission_seed(self, M, init_emission):
+        '''
+        Generates an emission of length M, assuming that the starting state
+        is chosen uniformly at random.
+
+        Arguments:
+            M:          Length of the emission to generate.
+
+        Returns:
+            emission:   The randomly generated emission as a list.
+
+            states:     The randomly generated states as a list.
+        '''
+
+        emission = []
+        states = []
+
+        possible_states = np.arange(self.L)
+        possible_emissions = np.arange(self.D)
+
+        init_state = np.random.choice(possible_states, p=self.A_start)
+        init_x = init_emission
 
         emission.append(init_x)
         states.append(init_state)
@@ -416,11 +451,11 @@ def supervised_HMM(X, Y):
 
     Arguments:
         X:          A dataset consisting of input sequences in the form
-                    of lists of variable length, consisting of integers 
+                    of lists of variable length, consisting of integers
                     ranging from 0 to D - 1. In other words, a list of lists.
 
         Y:          A dataset consisting of state sequences in the form
-                    of lists of variable length, consisting of integers 
+                    of lists of variable length, consisting of integers
                     ranging from 0 to L - 1. In other words, a list of lists.
                     Note that the elements in X line up with those in Y.
     '''
@@ -433,7 +468,7 @@ def supervised_HMM(X, Y):
     states = set()
     for y in Y:
         states |= set(y)
-    
+
     # Compute L and D.
     L = len(states)
     D = len(observations)
@@ -445,7 +480,7 @@ def supervised_HMM(X, Y):
         norm = sum(A[i])
         for j in range(len(A[i])):
             A[i][j] /= norm
-    
+
     # Randomly initialize and normalize matrix O.
     O = [[random.random() for i in range(D)] for j in range(L)]
 
@@ -469,19 +504,19 @@ def unsupervised_HMM(X, n_states, N_iters):
 
     Arguments:
         X:          A dataset consisting of input sequences in the form
-                    of lists of variable length, consisting of integers 
+                    of lists of variable length, consisting of integers
                     ranging from 0 to D - 1. In other words, a list of lists.
 
         n_states:   Number of hidden states to use in training.
-        
+
         N_iters:    The number of iterations to train on.
     '''
-    
+
     # Make a set of observations.
     observations = set()
     for x in X:
         observations |= set(x)
-    
+
     # Compute L and D.
     L = n_states
     D = len(observations)
