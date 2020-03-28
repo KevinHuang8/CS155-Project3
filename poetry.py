@@ -3,6 +3,7 @@ import HMM
 import importlib
 import random
 
+# Removes punctuation from beginning and end of word
 def remove_punctuation(words, dictionary):
     punctuation = [',','.',':','?',';','!',"'",'"', '(', ')']
     for i, word in enumerate(words):
@@ -44,6 +45,7 @@ def load_data(filename, dictionary):
 
     return data
 
+# Loads data in line-by-line and in reverse
 def load_data_rhyme(filename, dictionary):
     data = []
     with open(filename) as f:
@@ -70,6 +72,7 @@ def load_data_rhyme(filename, dictionary):
 
     return data
 
+# Converts words into an integer format suitable for HMM training
 def encode_data_HMM(data, word_list):
     encoding = {}
     for i, word in enumerate(word_list):
@@ -84,6 +87,7 @@ def encode_data_HMM(data, word_list):
 
     return encoded_data
 
+# Converts integer representation of words into strings
 def decode_emission(emission, word_list):
     decoded = []
     for word in emission:
@@ -91,6 +95,7 @@ def decode_emission(emission, word_list):
 
     return ' '.join(decoded)
 
+# Gets the number of syllables in a line, accounting for nuances.
 def get_syllable_count(line, dictionary):
     words = line.split(" ")
     syllables = []
@@ -107,8 +112,7 @@ def get_syllable_count(line, dictionary):
         syllables.append(final_syl_c)
     return sum(syllables)
 
-
-
+# Generates a normal sonnet without rhyming
 def generate_sonnet(model, word_list, syllable_dict):
 
     def generate_sonnet_line():
@@ -128,6 +132,7 @@ def generate_sonnet(model, word_list, syllable_dict):
     for k in range(2):
         print(generate_sonnet_line())
 
+# Generates a rhyming sonnet
 def generate_rhyming_sonnet(model, word_list, syllable_dict, rhyme_dict):
     print("### Rhyming Sonnet ###")
     # Model must be trained in reverse
@@ -155,6 +160,7 @@ def generate_rhyming_sonnet(model, word_list, syllable_dict, rhyme_dict):
         print(generate_sonnet_line(word1))
         print(generate_sonnet_line(word2))
 
+# Generates a haiku
 def generate_haiku(model, word_list, syllable_dict):
     def generate_haiku_line(syl_count):
         num_words_l = [3, 4, 5, 6, 7]
@@ -169,7 +175,7 @@ def generate_haiku(model, word_list, syllable_dict):
     print(generate_haiku_line(7))
     print(generate_haiku_line(5))
 
-
+# generwates sonnets using different models
 def poems_from_various_models(word_list, syllable_dict):
     models = [1, 3, 6, 10, 15, 20, 25]
     for i in models:
@@ -178,6 +184,7 @@ def poems_from_various_models(word_list, syllable_dict):
         generate_sonnet(model, word_list, syllable_dict)
         print()
 
+# Searches training data for rhyming pairs
 def generate_rhyme_pairs(data):
     #Assumes data is reversed
     rhyme_dict = {}
